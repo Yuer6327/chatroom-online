@@ -110,17 +110,11 @@ switch ($type)
         if (file_exists($room_file)) {
             $room_data = json_decode(file_get_contents($room_file), true);
             if ($room_data['password']) {
-                $password = $_REQUEST['password'] ?? null;
-                if (!$password) {
-                    echo '请输入密码！';
-                    exit;
-                } elseif (!password_verify($password, $room_data['password'])) {
-                    echo 'ERROR: Invalid password!';
-                    exit;
-                }
+                echo json_encode(['result' => 'password_required', 'room' => $room]);
+                exit;
             }
         } else {
-            echo 'ERROR:room not exists!';
+            echo json_encode(['result' => 'room_not_exists']);
             exit;
         }
         break;
@@ -169,7 +163,7 @@ switch ($type)
         $room = substr($room, 0, 10);
         $password = $_REQUEST['password'] ?? null;
         newRoom($room, $password);
-        header('Location:index.php?room=' . $room);
+        echo json_encode(['result' => 'room_created', 'room' => $room]);
         break;
     default:
         echo 'ERROR:no type!';
@@ -189,7 +183,7 @@ if (!file_exists($room_file))
     }
     else
     {
-        echo 'ERROR:room not exists!';
+        echo json_encode(['result' => 'room_not_exists']);
         exit;
     }
 }
@@ -357,7 +351,7 @@ a:hover {
 <h1>Yuer6327的聊天室</h1>
 <h2 align="center">在线房间</h2>
 <div id="chatroomList"></div>
-<div class="divMain">
+<div class="divMain" id="chatroomMain">
 <a href="index.php?type=new">新房间</a>
 <br>
 昵称：<input id="txtUser" type="text" maxlength="50" value="<?=$user?>" />
@@ -408,6 +402,7 @@ a:hover {
         });
     }, 1000);
 </script>
+
 <script>
     var blob = new Blob([document.querySelector('#worker').textContent]);
     var url = window.URL.createObjectURL(blob);
@@ -419,7 +414,7 @@ a:hover {
         for (let k in res.list)
         {
             let r = res.list[k];
-            html = '<div><span>' + r.time + '</span> <b>' + r.user + ':</b>   ' + decodeContent(r.content) + '</div>' + html;
+            html = '<div><span>' + r.time + '</span> <b>' + r.user + ':</b>   ' + decodeContent(r.content) + '</div>' + html;
         }
 
         $('#divList').prepend(html);
@@ -525,6 +520,11 @@ $(function(){
 
     $('#txtContent').val('🥳 我来了!');
     sendMsg();
+
+    // 检查是否需要密码
+    if (room.password) {
+        promptForPassword();
+    }
 });
 
 function createRoom() {
@@ -535,7 +535,17 @@ function createRoom() {
         password = generateRandomPassword();
     }
 
-    window.location.href = 'index.php?type=new&password=' + encodeURIComponent(password);
+    $.ajax({
+        url: 'index.php?type=new',
+        data: {password: encodeURIComponent(password)},
+        type: 'POST',
+        dataType: 'json',
+        success: function(res) {
+            if (res.result === 'room_created') {
+                window.location.href = 'index.php?room=' + res.room;
+            }
+        }
+    });
 }
 
 function generateRandomPassword() {
@@ -545,6 +555,39 @@ function generateRandomPassword() {
         password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return password;
+}
+
+function promptForPassword() {
+    let password = prompt('请输入聊天室密码：');
+    if (password) {
+        verifyPassword(password);
+    } else {
+        alert('请输入密码才能进入聊天室。');
+    }
+}
+
+function verifyPassword(password) {
+    $.ajax({
+        url: 'index.php?type=enter',
+        data: {room: room.name, password: encodeURIComponent(password)},
+        type: 'POST',
+        dataType: 'json',
+        success: function(res) {
+            if (res.result === 'ok') {
+                // 密码正确，加载聊天内容
+                $('#chatroomMain').show();
+                worker.postMessage(document.baseURI);
+            } else if (res.result === 'password_required') {
+                // 密码错误，提示重新输入
+                alert('密码错误，请重试。');
+                promptForPassword();
+            } else if (res.result === 'room_not_exists') {
+                // 房间不存在
+                alert('聊天室不存在。');
+                $('#chatroomMain').hide();
+            }
+        }
+    });
 }
 
 var chatrooms = <?= json_encode($chatrooms) ?>;
