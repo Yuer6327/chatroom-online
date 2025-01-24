@@ -35,7 +35,6 @@ function getChatrooms() {
 // 创建新房间
 function newRoom($room, $password = null)
 {
-    $password = $_POST['password'] ?? null;
     $room_file = './chat_data/' . $room . '.txt';
     $key_list = array_merge(range(48, 57), range(65, 90), range(97, 122), [43, 47, 61]);
     $key1_list = $key_list;
@@ -162,7 +161,7 @@ switch ($type)
         $room = substr($room, 0, 10);
         $password = $_REQUEST['password'] ?? null;
         newRoom($room, $password);
-        header('Location:index.php?room=' . $room .'&password=' . $password);
+        header('Location:index.php?room=' . $room);
         break;
     default:
         echo 'ERROR:no type!';
@@ -351,15 +350,7 @@ a:hover {
 <h2 align="center">在线房间</h2>
 <div id="chatroomList"></div>
 <div class="divMain">
-<!-- 创建一个a标签，其href属性暂时为空 -->
-<a id="newRoomLink" href="">新房间</a>
-<script>
-// 假设$password变量是通过某种方式获得的，例如从服务器或者用户输入
-var password = "$password"; // 这里用yourVariablePassword代替实际的密码变量
-// 设置a标签的href属性
-var newHref = "index.php?type=new&password=" + encodeURIComponent(password);
-document.getElementById("newRoomLink").href = newHref;
-</script>
+<a href="index.php?type=new">新房间</a>
 <br>
 昵称：<input id="txtUser" type="text" maxlength="50" value="<?=$user?>" />
 <button onclick="$('#divList').html('');">清空</button>
@@ -536,7 +527,7 @@ function createRoom() {
         password = generateRandomPassword();
     }
 
-    window.location.href = 'index.php?type=new&password=secret' + encodeURIComponent(password);
+    window.location.href = 'index.php?type=new&password=' + encodeURIComponent(password);
 }
 
 function generateRandomPassword() {
