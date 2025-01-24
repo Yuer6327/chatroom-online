@@ -19,22 +19,48 @@ $room = $_REQUEST['room'] ?? 'default';
 $type = $_REQUEST['type'] ?? 'enter';
 $type = strtolower($type);
 
+//20250123 BY MKLIU
+// 获取所有聊天室
+function getChatrooms() {
+    $files = glob('./chat_data/*.txt');
+    $chatrooms = [];
+    foreach ($files as $file) {
+        $filename = basename($file, '.txt');
+        $chatrooms[] = $filename;
+    }
+    return $chatrooms;
+}
 
 //20250123 BY MKLIU
 // 创建新房间
-function newRoom($room)
+function newRoom($room, $password = null)
 {
     $room_file = './chat_data/' . $room . '.txt';
     $key_list = array_merge(range(48, 57), range(65, 90), range(97, 122), [43, 47, 61]);
     $key1_list = $key_list;
     shuffle($key1_list);
+
+    if (!$password) {
+        $password = generateRandomPassword();
+    }
+
     $room_data = [
         'name'   => $room,
         'encode' => array_combine($key_list, $key1_list),
         'list'   => [],
         'time'   => date('Y-m-d H:i:s'),
+        'password' => password_hash($password, PASSWORD_DEFAULT),
     ];
     file_put_contents($room_file, json_encode($room_data));
+}
+
+function generateRandomPassword() {
+    $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    $password = '';
+    for ($i = 0; $i < 8; $i++) {
+        $password .= $chars[rand(0, strlen($chars) - 1)];
+    }
+    return $password;
 }
 
 //20250123 BY MKLIU
@@ -49,7 +75,7 @@ function getMsg($room, $last_id)
 
     // 清除一个月前消息
     $cur_list = [];
-    $del_time = date('Y-m-d H:i:s', time() - 2678400);
+    $del_time = date('Y-m-d H:i:s', time() - 604800);
     foreach ($list as $r)
     {
         if ($r['time'] > $del_time)
@@ -81,6 +107,14 @@ $room_file = './chat_data/' . $room . '.txt';
 switch ($type)
 {
     case 'enter':   // 进入房间
+        $room_data = json_decode(file_get_contents($room_file), true);
+        if ($room_data['password']) {
+            $password = $_REQUEST['password'] ?? null;
+            if (!$password || !password_verify($password, $room_data['password'])) {
+                echo 'ERROR: Invalid password!';
+                exit;
+            }
+        }
         break;
     case 'get':     // 获取消息
         $last_id = $_REQUEST['last_id'];
@@ -125,7 +159,8 @@ switch ($type)
         mt_srand();
         $room = strtoupper(md5(uniqid(mt_rand(), true)));
         $room = substr($room, 0, 10);
-        newRoom($room);
+        $password = $_REQUEST['password'] ?? null;
+        newRoom($room, $password);
         header('Location:index.php?room=' . $room);
         break;
     default:
@@ -155,6 +190,8 @@ $room_data = json_decode(file_get_contents($room_file), true);
 unset($room_data['list']);
 
 $user = 'User' . str_pad((time() % 99 + 1), 2, '0', STR_PAD_LEFT);
+
+$chatrooms = getChatrooms(); // 获取所有聊天室
 
 ?>
 
@@ -196,7 +233,18 @@ h1 {
     text-align: center;
     font-size: 2.5em;
     color: #444;
-    margin-top: 20px;
+    margin-top: 0px;
+}
+
+/* 在线聊天室列表 */
+#chatroomList {
+    max-width: 800px;
+    margin: 20px auto;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    line-height: 1.6;
 }
 
 /* 主体容器 */
@@ -211,7 +259,7 @@ h1 {
 }
 
 /* 输入框样式 */
-input[type="text"] {
+input[type="text"], input[type="password"] {
     width: calc(100% - 120px);
     padding: 10px;
     margin: 10px 0;
@@ -299,17 +347,24 @@ a:hover {
 <body>
     
 <h1>Yuer6327的聊天室</h1>
+<h2  align="center">在线房间</h2>
+<div id="chatroomList"></div>
 <div class="divMain">
-<?php if ($room != 'default'){?>
-<div>复制网页链接发给朋友一起聊天！</div>
-<?php } ?>
+<a href="index.php?type=new">新房间</a>
+<br>
 昵称：<input id="txtUser" type="text" maxlength="50" value="<?=$user?>" />
 <button onclick="$('#divList').html('');">清空</button>
-  
-<a href="index.php?type=new">新房间</a>
 <br>
 内容：<input id="txtContent" type="text" value="" maxlength="100" style="width: 300px;" />
 <button onclick="sendMsg();">发送</button>
+<br>
+<label for="password">密码：</label>
+<input type="password" id="txtPassword" maxlength="50" />
+<button onclick="createRoom();">新房间</button>
+<label for="generatePassword">
+    <input type="checkbox" id="generatePassword" />
+    生成随机密码
+</label>
 
 <hr>
 <div id="divList"></div>
@@ -464,8 +519,37 @@ $(function(){
     sendMsg();
 });
 
+function createRoom() {
+    let password = document.getElementById('txtPassword').value;
+    let generatePassword = document.getElementById('generatePassword').checked;
+
+    if (generatePassword) {
+        password = generateRandomPassword();
+    }
+
+    window.location.href = 'index.php?type=new&password=' + encodeURIComponent(password);
+}
+
+function generateRandomPassword() {
+    let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let password = '';
+    for (let i = 0; i < 8; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+}
+
+var chatrooms = <?= json_encode($chatrooms) ?>;
+var chatroomList = document.getElementById('chatroomList');
+chatrooms.forEach(function(room) {
+    var roomLink = document.createElement('a');
+    roomLink.href = 'index.php?room=' + room;
+    roomLink.textContent = room;
+    chatroomList.appendChild(roomLink);
+    chatroomList.appendChild(document.createElement('br'));
+});
 </script>
-<div class="info">
+<div  align="center">
     Copyright © 2025 Yuer6327
 </div>
 </body>
