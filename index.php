@@ -73,7 +73,7 @@ function getMsg($room, $last_id)
     $room_data = json_decode(file_get_contents($room_file), true);
     $list = $room_data['list'];
 
-    // 清除一个月前消息
+    // 清除一周前消息
     $cur_list = [];
     $del_time = date('Y-m-d H:i:s', time() - 604800);
     foreach ($list as $r)
@@ -347,7 +347,7 @@ a:hover {
 <body>
     
 <h1>Yuer6327的聊天室</h1>
-<h2  align="center">在线房间</h2>
+<h2 align="center">在线房间</h2>
 <div id="chatroomList"></div>
 <div class="divMain">
 <a href="index.php?type=new">新房间</a>
@@ -363,7 +363,7 @@ a:hover {
 <button onclick="createRoom();">新房间</button>
 <label for="generatePassword">
     <input type="checkbox" id="generatePassword" />
-    生成随机密码
+    自动生成随机密码
 </label>
 
 <hr>
@@ -449,7 +449,7 @@ function sendMsg()
 
     window.localStorage.setItem('r_' + room.name, user);
     
-    // 限制0.5秒内仅允许发送1条消息
+    // 限制0.3秒内仅允许发送1条消息
     let curTime = new Date().getTime();
     if (curTime - lastSendTime < 300)
     {
