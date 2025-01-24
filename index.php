@@ -107,13 +107,21 @@ $room_file = './chat_data/' . $room . '.txt';
 switch ($type)
 {
     case 'enter':   // 进入房间
-        $room_data = json_decode(file_get_contents($room_file), true);
-        if ($room_data['password']) {
-            $password = $_REQUEST['password'] ?? null;
-            if (!$password || !password_verify($password, $room_data['password'])) {
-                echo 'ERROR: Invalid password!';
-                exit;
+        if (file_exists($room_file)) {
+            $room_data = json_decode(file_get_contents($room_file), true);
+            if ($room_data['password']) {
+                $password = $_REQUEST['password'] ?? null;
+                if (!$password) {
+                    echo '请输入密码！';
+                    exit;
+                } elseif (!password_verify($password, $room_data['password'])) {
+                    echo 'ERROR: Invalid password!';
+                    exit;
+                }
             }
+        } else {
+            echo 'ERROR:room not exists!';
+            exit;
         }
         break;
     case 'get':     // 获取消息
