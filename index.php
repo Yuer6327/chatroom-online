@@ -35,6 +35,7 @@ function getChatrooms() {
 // 创建新房间
 function newRoom($room, $password = null)
 {
+    $password = $_POST['password'] ?? null;
     $room_file = './chat_data/' . $room . '.txt';
     $key_list = array_merge(range(48, 57), range(65, 90), range(97, 122), [43, 47, 61]);
     $key1_list = $key_list;
@@ -107,22 +108,13 @@ $room_file = './chat_data/' . $room . '.txt';
 switch ($type)
 {
     case 'enter':   // 进入房间
-        $password = $_REQUEST['password'] ?? null;
-        if (file_exists($room_file)) {
-            $room_data = json_decode(file_get_contents($room_file), true);
-            if ($room_data['password']) {
-                if (!$password) {
-                    // 重定向到密码输入页面
-                    header('Location: password.php?room=' . $room);
-                    exit;
-                } elseif (!password_verify($password, $room_data['password'])) {
-                    echo json_encode(['result' => 'invalid_password']);
-                    exit;
-                }
+        $room_data = json_decode(file_get_contents($room_file), true);
+        if ($room_data['password']) {
+            $password = $_REQUEST['password'] ?? null;
+            if (!$password || !password_verify($password, $room_data['password'])) {
+                echo 'ERROR: Invalid password!';
+                exit;
             }
-        } else {
-            echo json_encode(['result' => 'room_not_exists']);
-            exit;
         }
         break;
     case 'get':     // 获取消息
@@ -170,10 +162,10 @@ switch ($type)
         $room = substr($room, 0, 10);
         $password = $_REQUEST['password'] ?? null;
         newRoom($room, $password);
-        header('Location:index.php?room=' . $room);
+        header('Location:index.php?room=' . $room .'&password=' . $password);
         break;
     default:
-        echo json_encode(['result' => 'no_type']);
+        echo 'ERROR:no type!';
         break;
 }
 
@@ -190,7 +182,7 @@ if (!file_exists($room_file))
     }
     else
     {
-        echo json_encode(['result' => 'room_not_exists']);
+        echo 'ERROR:room not exists!';
         exit;
     }
 }
@@ -358,8 +350,16 @@ a:hover {
 <h1>Yuer6327的聊天室</h1>
 <h2 align="center">在线房间</h2>
 <div id="chatroomList"></div>
-<div class="divMain" id="chatroomMain">
-<a href="index.php?type=new">新房间</a>
+<div class="divMain">
+<!-- 创建一个a标签，其href属性暂时为空 -->
+<a id="newRoomLink" href="">新房间</a>
+<script>
+// 假设$password变量是通过某种方式获得的，例如从服务器或者用户输入
+var password = "$password"; // 这里用yourVariablePassword代替实际的密码变量
+// 设置a标签的href属性
+var newHref = "index.php?type=new&password=" + encodeURIComponent(password);
+document.getElementById("newRoomLink").href = newHref;
+</script>
 <br>
 昵称：<input id="txtUser" type="text" maxlength="50" value="<?=$user?>" />
 <button onclick="$('#divList').html('');">清空</button>
@@ -378,199 +378,38 @@ a:hover {
 <hr>
 <div id="divList"></div>
 </div>
+<!--20250123 BY MKLIU-->
+<!--使用worker获取消息数据，注意ngnix会阻塞整个进程-->
+<script id="worker" type="app/worker">
+    var room = '<?=$room_data['name']?>';
+    var isBusy = false;
+    var lastId = -1;
 
-<div class="divMain" id="passwordForm" style="display:none;">
-    <form id="loginForm" action="index.php?type=enter" method="post">
-        <input type="hidden" name="room" value="<?=$room?>">
-        <label for="password">密码：</label>
-        <input type="password" name="password" id="password" maxlength="50" required />
-        <button type="submit">进入聊天室</button>
-    </form>
-</div>
+    var urlBase = '';
+    addEventListener('message', function (evt) {
+        urlBase = evt.data;
+    }, false);
+    setInterval(function(){
+        if (isBusy) return;
+        isBusy = true;
 
+        let url = new URL( 'index.php?type=get&room=' + room + '&last_id=' + lastId, urlBase );
+        fetch(url)
+        .then(res=>res.json())
+        .then(function(res){
+            isBusy = false;
+            if (res.list.length > 0)
+            {
+                lastId = res.list[res.list.length-1].id;
+            }
+            self.postMessage(res);
+        })
+        .catch(function(err){
+            isBusy = false;
+        });
+    }, 1000);
+</script>
 <script>
-    var user = '<?=$user?>';
-    var chatroom = '<?=$room?>';
-    var room_file = './chat_data/' + chatroom + '.txt';
-
-    // 检查是否需要密码
-    function checkPasswordRequired() {
-        $.ajax({
-            url: 'index.php?type=enter',
-            data: {room: chatroom},
-            type: 'POST',
-            dataType: 'json',
-            success: function(res) {
-                if (res.result === 'password_required') {
-                    // 显示密码输入表单
-                    $('#passwordForm').show();
-                    $('#chatroomMain').hide();
-                } else if (res.result === 'invalid_password') {
-                    // 密码错误，提示重新输入
-                    alert('密码错误，请重试。');
-                    $('#passwordForm').show();
-                    $('#chatroomMain').hide();
-                } else if (res.result === 'room_not_exists') {
-                    // 房间不存在
-                    alert('聊天室不存在。');
-                    $('#chatroomMain').hide();
-                } else {
-                    // 密码正确，加载聊天内容
-                    $('#passwordForm').hide();
-                    $('#chatroomMain').show();
-                    $('#txtUser').val(user);
-                    sendInitialMessage();
-                    worker.postMessage(document.baseURI);
-                }
-            }
-        });
-    }
-
-    // 发送初始消息
-    function sendInitialMessage() {
-        let content = '🥳 我来了!';
-        $.ajax({
-            url: 'index.php?type=send',
-            data: {room: chatroom, user: $('#txtUser').val().trim(), content: encodeContent(content)},
-            type: 'POST',
-            dataType: 'json',
-            success: function() {
-                $('#txtContent').val('');
-                $('#txtContent').focus();
-            },
-        });
-    }
-
-    // 消息加密
-    function encodeContent(content)
-    {
-        content = encodeURIComponent(content);
-        content = window.btoa(content);
-
-        let str = '';
-        for (let i=0; i<content.length; i++)
-        {
-            str += String.fromCharCode(room.encode[content.charCodeAt(i)]);
-        }
-
-        return str;
-    }
-
-    // 消息解密
-    function decodeContent(content)
-    {
-        let str = '';
-        for (let i=0; i<content.length; i++)
-        {
-            str += String.fromCharCode(room.decode[content.charCodeAt(i)]);
-        }
-
-        str = window.atob(str);
-        str = decodeURIComponent(str);
-
-        return str;
-    }
-
-    // 创建新房间
-    function createRoom() {
-        let password = document.getElementById('txtPassword').value;
-        let generatePassword = document.getElementById('generatePassword').checked;
-
-        if (generatePassword) {
-            password = generateRandomPassword();
-        }
-
-        $.ajax({
-            url: 'index.php?type=new',
-            data: {password: encodeURIComponent(password)},
-            type: 'POST',
-            dataType: 'json',
-            success: function(res) {
-                if (res.result === 'room_created') {
-                    window.location.href = 'index.php?room=' + res.room;
-                }
-            }
-        });
-    }
-
-    // 生成随机密码
-    function generateRandomPassword() {
-        let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let password = '';
-        for (let i = 0; i < 8; i++) {
-            password += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return password;
-    }
-
-    var room = <?=json_encode($room_data)?>;
-    room['decode'] = {};
-    for (let k in room.encode)
-    {
-        room['decode'][room.encode[k]] = k;
-    }
-
-    $(function(){
-        checkPasswordRequired();
-
-        $('#txtContent').keydown(function(e){
-            if(e.keyCode==13){
-                event.preventDefault();
-                sendMsg();
-            }
-        });
-    });
-
-    // 发送消息
-    function sendMsg()
-    {
-        let user = $('#txtUser').val().trim();
-        let content = $('#txtContent').val().trim();
-
-        if (content == '')
-        {
-            return;
-        }
-
-        if (user == '')
-        {
-            alert('昵称不能为空');
-            return;
-        }
-
-        window.localStorage.setItem('r_' + chatroom, user);
-        
-        // 限制0.3秒内仅允许发送1条消息
-        let curTime = new Date().getTime();
-        if (curTime - lastSendTime < 300)
-        {
-            return;
-        }
-        lastSendTime = curTime;
-
-        $.ajax({
-            url:'index.php?type=send',
-            data:{room:chatroom, user:user, content:encodeContent(content)},
-            type:'POST',
-            dataType:'json',
-            success:function(){
-                $('#txtContent').val('');
-                $('#txtContent').focus();
-            },
-        });
-    }
-
-    var chatrooms = <?= json_encode($chatrooms) ?>;
-    var chatroomList = document.getElementById('chatroomList');
-    chatrooms.forEach(function(room) {
-        var roomLink = document.createElement('a');
-        roomLink.href = 'index.php?room=' + room;
-        roomLink.textContent = room;
-        chatroomList.appendChild(roomLink);
-        chatroomList.appendChild(document.createElement('br'));
-    });
-
-    // 使用worker获取消息数据，注意ngnix会阻塞整个进程
     var blob = new Blob([document.querySelector('#worker').textContent]);
     var url = window.URL.createObjectURL(blob);
     var worker = new Worker(url);
@@ -581,7 +420,7 @@ a:hover {
         for (let k in res.list)
         {
             let r = res.list[k];
-            html = '<div><span>' + r.time + '</span> <b>' + r.user + ':</b>   ' + decodeContent(r.content) + '</div>' + html;
+            html = '<div><span>' + r.time + '</span> <b>' + r.user + ':</b>   ' + decodeContent(r.content) + '</div>' + html;
         }
 
         $('#divList').prepend(html);
@@ -590,7 +429,136 @@ a:hover {
     worker.postMessage(document.baseURI);
 </script>
 
-<div align="center">
+<script>
+var room = <?=json_encode($room_data)?>;
+room['decode'] = {};
+for (let k in room.encode)
+{
+    room['decode'][room.encode[k]] = k;
+}
+
+//20250123 BY MKLIU
+// 发送消息
+var lastSendTime = 0;
+function sendMsg()
+{
+    let user = $('#txtUser').val().trim();
+    let content = $('#txtContent').val().trim();
+
+    if (content == '')
+    {
+        return;
+    }
+
+    if (user == '')
+    {
+        alert('昵称不能为空');
+        return;
+    }
+
+    window.localStorage.setItem('r_' + room.name, user);
+    
+    // 限制0.3秒内仅允许发送1条消息
+    let curTime = new Date().getTime();
+    if (curTime - lastSendTime < 300)
+    {
+        return;
+    }
+    lastSendTime = curTime;
+
+    $.ajax({
+        url:'index.php?type=send',
+        data:{room:room.name, user:user, content:encodeContent(content)},
+        type:'POST',
+        dataType:'json',
+        success:function(){
+            $('#txtContent').val('');
+            $('#txtContent').focus();
+        },
+    });
+}
+
+//20250123 BY MKLIU
+// 消息加密
+function encodeContent(content)
+{
+    content = encodeURIComponent(content);
+    content = window.btoa(content);
+
+    let str = '';
+    for (let i=0; i<content.length; i++)
+    {
+        str += String.fromCharCode(room.encode[content.charCodeAt(i)]);
+    }
+
+    return str;
+}
+
+//20250123 BY MKLIU
+// 消息解密
+function decodeContent(content)
+{
+    let str = '';
+    for (let i=0; i<content.length; i++)
+    {
+        str += String.fromCharCode(room.decode[content.charCodeAt(i)]);
+    }
+
+    str = window.atob(str);
+    str = decodeURIComponent(str);
+
+    return str;
+}
+
+$(function(){
+    let userName = window.localStorage.getItem('r_' + room.name);
+    if (userName)
+    {
+        $('#txtUser').val(userName);
+    }
+
+    $('#txtContent').keydown(function(e){
+        if(e.keyCode==13){
+            event.preventDefault();
+            sendMsg();
+        }
+    });
+
+    $('#txtContent').val('🥳 我来了!');
+    sendMsg();
+});
+
+function createRoom() {
+    let password = document.getElementById('txtPassword').value;
+    let generatePassword = document.getElementById('generatePassword').checked;
+
+    if (generatePassword) {
+        password = generateRandomPassword();
+    }
+
+    window.location.href = 'index.php?type=new&password=secret' + encodeURIComponent(password);
+}
+
+function generateRandomPassword() {
+    let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let password = '';
+    for (let i = 0; i < 8; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+}
+
+var chatrooms = <?= json_encode($chatrooms) ?>;
+var chatroomList = document.getElementById('chatroomList');
+chatrooms.forEach(function(room) {
+    var roomLink = document.createElement('a');
+    roomLink.href = 'index.php?room=' + room;
+    roomLink.textContent = room;
+    chatroomList.appendChild(roomLink);
+    chatroomList.appendChild(document.createElement('br'));
+});
+</script>
+<div  align="center">
     Copyright © 2025 Yuer6327
 </div>
 </body>
