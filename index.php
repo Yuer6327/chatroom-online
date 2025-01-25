@@ -161,7 +161,7 @@ switch ($type)
         $room = substr($room, 0, 10);
         $password = $_REQUEST['password'] ?? null;
         newRoom($room, $password);
-        header('Location:index.php?room=' . $room);
+        header('Location:index.php?room=' . $room . "&password=" . $password);
         break;
     default:
         echo 'ERROR:no type!';
