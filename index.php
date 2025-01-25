@@ -538,10 +538,11 @@ function generateRandomPassword() {
 }
 
 var chatrooms = <?= json_encode($chatrooms) ?>;
+var password = <?= json_encode($password) ?>;
 var chatroomList = document.getElementById('chatroomList');
 chatrooms.forEach(function(room) {
     var roomLink = document.createElement('a');
-    roomLink.href = 'index.php?room=' + room;
+    roomLink.href = 'index.php?room=' + room + '&password=' + password;
     roomLink.textContent = room;
     chatroomList.appendChild(roomLink);
     chatroomList.appendChild(document.createElement('br'));
