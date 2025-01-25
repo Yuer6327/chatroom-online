@@ -349,9 +349,6 @@ a:hover {
 <h1>Yuer6327的聊天室</h1>
 <h2 align="center">在线房间</h2>
 <div id="chatroomList"></div>
-<div class="divMain">
-<a href="index.php?type=new">新房间</a>
-<br>
 昵称：<input id="txtUser" type="text" maxlength="50" value="<?=$user?>" />
 <button onclick="$('#divList').html('');">清空</button>
 <br>
