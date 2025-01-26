@@ -29,15 +29,15 @@ function getChatrooms() {
 }
 
 // 创建新房间
-function newRoom($room,$password = null)
+function newRoom($room,$passwordgen = null)
 {
     $room_file = './chat_data/' .$room . '.txt';
     $key_list = array_merge(range(48, 57), range(65, 90), range(97, 122), [43, 47, 61]);
     $key1_list =$key_list;
     shuffle($key1_list);
 
-    if (!$password) {
-        $password = generateRandomPassword();
+    if (!$passwordgen) {
+        $passwordgen = generateRandomPassword();
     }
 
     $room_data = [
@@ -45,7 +45,7 @@ function newRoom($room,$password = null)
         'encode' => array_combine($key_list, $key1_list),
         'list'   => [],
         'time'   => date('Y-m-d H:i:s'),
-        'password' => password_hash($password, PASSWORD_DEFAULT),
+        'password' => password_hash($passwordgen, PASSWORD_DEFAULT),
     ];
     file_put_contents($room_file, json_encode($room_data));
 }
@@ -56,7 +56,7 @@ function checkPassword() {
     $room_file = './chat_data/' .$room . '.txt';
     $room_data = json_decode(file_get_contents($room_file), true);
     $correctPassword = $room_data['password']; // 设置正确的密码
-    if ($password === $correctPassword) {
+    if ($password == $correctPassword) {
         return true;
     } else {
         return false;
@@ -79,11 +79,11 @@ function promptPassword() {
 
 function generateRandomPassword() {
     $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    $password = '';
+    $passwordgen = '';
     for ($i = 0; $i < 8; $i++) {
-        $password .= $chars[rand(0, strlen($chars) - 1)];
+        $passwordgen .= $chars[rand(0, strlen($chars) - 1)];
     }
-    return $password;
+    return $passwordgen;
 }
 
 //20250123 BY MKLIU
@@ -573,7 +573,7 @@ function generateRandomPassword() {
 }
 
 var chatrooms = <?= json_encode($chatrooms) ?>;
-var password = <?= json_encode($password) ?>;
+var password = <?= json_encode($passwordgen) ?>;
 var chatroomList = document.getElementById('chatroomList');
 chatrooms.forEach(function(room) {
     var roomLink = document.createElement('a');
