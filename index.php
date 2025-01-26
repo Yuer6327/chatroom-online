@@ -56,7 +56,11 @@ function checkPassword() {
     $room_file = './chat_data/' .$room . '.txt';
     $room_data = json_decode(file_get_contents($room_file), true);
     $correctPassword = $room_data['password']; // 设置正确的密码
-    return $password ===$correctPassword;
+    $password == $correctPassword;
+    if $password == $correctPassword {
+        return true;
+    } else {
+        return false;
 }
 
 // 弹出输入框询问密码
