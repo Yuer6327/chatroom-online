@@ -1,43 +1,39 @@
 <?php
-//使用PHP做的单页面在线聊天。
-//20250123 BY MKLIU
-//基本功能：
-//1. 多人聊天
-//2. 多房间
-//3. 传输信息加密，基于base64+字符替换实现
-//4. 基于长连接读取（ngnix使用PHP sleep有问题）
-//5. 支持昵称自定义，并使用浏览器保存。
-//6. 需要在程序目录创建chat_data文件夹，用来存储历史聊天数据
+// 使用PHP做的单页面在线聊天。
+// 20250123 BY MKLIU
+// 基本功能：
+// 1. 多人聊天
+// 2. 多房间
+// 3. 传输信息加密，基于base64+字符替换实现
+// 4. 基于长连接读取（ngnix使用PHP sleep有问题）
+// 5. 支持昵称自定义，并使用浏览器保存。
+// 6. 需要在程序目录创建chat_data文件夹，用来存储历史聊天数据
 
-//20250123 BY MKLIU
-// 系统入口
 date_default_timezone_set("PRC");
 error_reporting(E_ALL & ~E_NOTICE);
 set_time_limit(30);
 
-$room = $_REQUEST['room'] ?? 'default';
-$type = $_REQUEST['type'] ?? 'enter';
+$room =$_REQUEST['room'] ?? 'default';
+$type =$_REQUEST['type'] ?? 'enter';
 $type = strtolower($type);
 
-//20250123 BY MKLIU
 // 获取所有聊天室
 function getChatrooms() {
     $files = glob('./chat_data/*.txt');
     $chatrooms = [];
-    foreach ($files as $file) {
+    foreach ($files as$file) {
         $filename = basename($file, '.txt');
-        $chatrooms[] = $filename;
+        $chatrooms[] =$filename;
     }
     return $chatrooms;
 }
 
-//20250123 BY MKLIU
 // 创建新房间
-function newRoom($room, $password = null)
+function newRoom($room,$password = null)
 {
-    $room_file = './chat_data/' . $room . '.txt';
+    $room_file = './chat_data/' .$room . '.txt';
     $key_list = array_merge(range(48, 57), range(65, 90), range(97, 122), [43, 47, 61]);
-    $key1_list = $key_list;
+    $key1_list =$key_list;
     shuffle($key1_list);
 
     if (!$password) {
@@ -52,6 +48,29 @@ function newRoom($room, $password = null)
         'password' => password_hash($password, PASSWORD_DEFAULT),
     ];
     file_put_contents($room_file, json_encode($room_data));
+}
+
+// 检测密码是否正确
+function checkPassword() {
+    $password =$_POST['password'] ?? '';
+    $room_file = './chat_data/' .$room . '.txt';
+    $room_data = json_decode(file_get_contents($room_file), true);
+    $correctPassword = $room_data['password']; // 设置正确的密码
+    return $password ===$correctPassword;
+}
+
+// 弹出输入框询问密码
+function promptPassword() {
+    echo '<form id="passwordForm" method="post" action="">
+        <input type="hidden" name="password" id="userPassword">
+    </form>';
+    echo '<script>
+        var pwd = prompt("请输入密码：");
+        if (pwd !== null) {
+            document.getElementById("userPassword").value = pwd;
+            document.getElementById("passwordForm").submit();
+        }
+    </script>';
 }
 
 function generateRandomPassword() {
@@ -107,15 +126,27 @@ $room_file = './chat_data/' . $room . '.txt';
 switch ($type)
 {
     case 'enter':   // 进入房间
-        $room_data = json_decode(file_get_contents($room_file), true);
-        if ($room_data['password']) {
-            $password = $_REQUEST['password'] ?? null;
-            if (!$password || !password_verify($password, $room_data['password'])) {
-                echo 'ERROR: Invalid password!';
-                exit;
-            }
+    $authenticated = false;
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (checkPassword()) {
+            $authenticated = true;
+        } else {
+            promptPassword();
         }
-        break;
+    } else {
+    promptPassword();
+}
+
+if ($authenticated) {
+    // 密码正确，继续执行聊天功能
+    break;
+}
+else {
+    promptPassword();
+}
+
+// 进入房间，显示聊天窗口
     case 'get':     // 获取消息
         $last_id = $_REQUEST['last_id'];
         $msg_list = [];
