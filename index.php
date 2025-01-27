@@ -28,12 +28,10 @@ function getChatrooms() {
     return $chatrooms;
 }
 
-// 创建新房间
-function newRoom($room,$passwordgen = null)
-{
-    $room_file = './chat_data/' .$room . '.txt';
+function newRoom($room, $passwordgen = null) {
+    $room_file = './chat_data/' . $room . '.txt';
     $key_list = array_merge(range(48, 57), range(65, 90), range(97, 122), [43, 47, 61]);
-    $key1_list =$key_list;
+    $key1_list = $key_list;
     shuffle($key1_list);
 
     if (!$passwordgen) {
@@ -53,10 +51,10 @@ function newRoom($room,$passwordgen = null)
 // 检测密码是否正确
 function checkPassword() {
     $password = $_POST['password'] ?? '';
-    $room_file = './chat_data/' .$room . '.txt';
+    $room_file = './chat_data/' . $_POST['room'] . '.txt';
     $room_data = json_decode(file_get_contents($room_file), true);
-    $correctPassword = $room_data['password']; // 设置正确的密码
-    if ($password == $correctPassword) {
+    $correctPassword = $room_data['password']; // 获取正确的密码哈希
+    if (password_verify($password, $correctPassword)) {
         return true;
     } else {
         return false;
