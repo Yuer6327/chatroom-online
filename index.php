@@ -13,8 +13,8 @@ date_default_timezone_set("PRC");
 error_reporting(E_ALL & ~E_NOTICE);
 set_time_limit(30);
 
-$room =$_REQUEST['room'] ?? 'default';
-$type =$_REQUEST['type'] ?? 'enter';
+$room = $_REQUEST['room'] ?? 'default';
+$type = $_REQUEST['type'] ?? 'enter';
 $type = strtolower($type);
 
 // 获取所有聊天室
@@ -22,19 +22,18 @@ function getChatrooms() {
     // 获取chat_data文件夹下的所有.txt文件
     $files = glob('./chat_data/*.txt');
     $chatrooms = [];
-    foreach ($files as$file) {
+    foreach ($files as $file) {
         $filename = basename($file, '.txt');
-        $chatrooms[] =$filename;
+        $chatrooms[] = $filename;
     }
     return $chatrooms;
 }
 
 // 创建新房间
-function newRoom($room,$passwordgen = null)
-{
-    $room_file = './chat_data/' .$room . '.txt';
+function newRoom($room, $passwordgen = null) {
+    $room_file = './chat_data/' . $room . '.txt';
     $key_list = array_merge(range(48, 57), range(65, 90), range(97, 122), [43, 47, 61]);
-    $key1_list =$key_list;
+    $key1_list = $key_list;
     shuffle($key1_list);
 
     if (!$passwordgen) {
@@ -57,7 +56,7 @@ function checkPassword() {
     $room_file = './chat_data/' . $room . '.txt';
     $room_data = json_decode(file_get_contents($room_file), true);
     $correctPassword = $room_data['password']; // 从json解码后的数据中读取正确的密码
-    if (password_verify($password, $correctPassword)) {
+    if (password_verify($password, $correctPassword)===true) {
         return true;
     } else {
         return false;
@@ -90,8 +89,7 @@ function generateRandomPassword() {
 
 //20250123 BY MKLIU
 // 获取消息列表
-function getMsg($room, $last_id)
-{
+function getMsg($room, $last_id) {
     $room_file = './chat_data/' . $room . '.txt';
     $msg_list = [];
 
@@ -101,25 +99,20 @@ function getMsg($room, $last_id)
     // 清除一周前消息
     $cur_list = [];
     $del_time = date('Y-m-d H:i:s', time() - 604800);
-    foreach ($list as $r)
-    {
-        if ($r['time'] > $del_time)
-        {
+    foreach ($list as $r) {
+        if ($r['time'] > $del_time) {
             $cur_list[] = $r;
         }
     }
 
-    if (count($cur_list) != count($list) && count($list) > 0)
-    {
+    if (count($cur_list) != count($list) && count($list) > 0) {
         $room_data['list'] = $cur_list;
         file_put_contents($room_file, json_encode($room_data));
     }
 
     // 查找最新消息
-    foreach ($list as $r)
-    {
-        if ($r['id'] > $last_id)
-        {
+    foreach ($list as $r) {
+        if ($r['id'] > $last_id) {
             $msg_list[] = $r;
         }
     }
@@ -129,50 +122,43 @@ function getMsg($room, $last_id)
 
 $room_file = './chat_data/' . $room . '.txt';
 
-switch ($type)
-{
+switch ($type) {
     case 'enter':   // 进入房间
-    $authenticated = false;
+        $authenticated = false;
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        if (checkPassword()) {
-            $authenticated = true;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (checkPassword()) {
+                $authenticated = true;
+            } else {
+                promptPassword();
+            }
         } else {
             promptPassword();
         }
-    } else {
-    promptPassword();
-}
 
-if ($authenticated) {
-    // 密码正确，继续执行聊天功能
-    break;
-}
-else {
-    promptPassword();
-}
+        if ($authenticated) {
+            // 密码正确，继续执行聊天功能
+            break;
+        } else {
+            promptPassword();
+        }
 
-// 进入房间，显示聊天窗口
+    // 进入房间，显示聊天窗口
     case 'get':     // 获取消息
         $last_id = $_REQUEST['last_id'];
         $msg_list = [];
 
-        if (strpos($_SERVER['SERVER_SOFTWARE'], 'nginx') !== false)
-        {
+        if (strpos($_SERVER['SERVER_SOFTWARE'], 'nginx') !== false) {
             $msg_list = getMsg($room, $last_id);
-        }
-        else
-        {
+        } else {
             // nginx 使用sleep将会把整个网站卡死
-            for ($i=0; $i<20; $i++)
-            {
+            for ($i = 0; $i < 20; $i++) {
                 $msg_list = getMsg($room, $last_id);
-                
-                if (!empty($msg_list))
-                {
+
+                if (!empty($msg_list)) {
                     break;
                 }
-    
+
                 usleep(500000);
             }
         }
@@ -205,19 +191,14 @@ else {
         break;
 }
 
-if ($type != 'enter')
-{
+if ($type != 'enter') {
     exit;
 }
 
-if (!file_exists($room_file))
-{
-    if ($room == 'default')
-    {
+if (!file_exists($room_file)) {
+    if ($room == 'default') {
         newRoom($room);
-    }
-    else
-    {
+    } else {
         echo 'ERROR:room not exists!';
         exit;
     }
@@ -246,16 +227,16 @@ $chatrooms = getChatrooms(); // 获取所有聊天室
 <link href="https://lib.baomitu.com/normalize/latest/normalize.min.css" rel="stylesheet">
 <style>
 /* css style */
-body{
-    padding:0 10px;
+body {
+    padding: 0 10px;
 }
-.divMain{
-    font-size:14px;
+.divMain {
+    font-size: 14px;
     line-height: 2;
 }
 
-#divList span{
-    color:gray;
+#divList span {
+    color: gray;
 }
 body {
     margin: 0;
@@ -585,7 +566,7 @@ chatrooms.forEach(function(room) {
     chatroomList.appendChild(document.createElement('br'));
 });
 </script>
-<div  align="center">
+<div align="center">
     Copyright © 2025 Yuer6327
 </div>
 </body>
