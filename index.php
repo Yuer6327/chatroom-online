@@ -194,8 +194,8 @@ switch ($type)
             $room = substr($room, 0, 10);
             $passwordinput = $_REQUEST['password'] ?? null;
             $generatedPassword = newRoom($room, $passwordinput);
-                echo '<script>alert("房间密码是：' . $generatedPassword . '，请保存好。"); window.location.href="index.php?room=' . $room . '";</script>';
-                header('Location:index.php?room=' . $room);
+            echo '<script>alert("房间密码是：' . $generatedPassword . '，请保存好。"); window.location.href="index.php?room=' . $room . '";</script>';
+            exit;
             break;
     default:
         echo 'ERROR:no type!';
