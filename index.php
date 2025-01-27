@@ -8,7 +8,10 @@
 // 4. 基于长连接读取（ngnix使用PHP sleep有问题）
 // 5. 支持昵称自定义，并使用浏览器保存。
 // 6. 需要在程序目录创建chat_data文件夹，用来存储历史聊天数据
-
+// 7. 支持新建房间，自动生成密码
+// 8. 支持密码保护房间
+// 9. 在config.php中设置网站标题和logo
+include 'config.php';
 date_default_timezone_set("PRC");
 error_reporting(E_ALL & ~E_NOTICE);
 set_time_limit(30);
@@ -238,8 +241,8 @@ $chatrooms = getChatrooms(); // 获取所有聊天室
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="renderer" content="webkit">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Yuer6327的聊天室</title>
-<link rel="icon" href="https://yuer6327.42web.io/wp-content/uploads/2025/01/高中头像.png" type="image/png">
+<title><?php echo $title; ?></title>
+<link rel="icon" href="<?php echo $logoUrl; ?>" type="image/x-icon">
 <link href="https://lib.baomitu.com/normalize/latest/normalize.min.css" rel="stylesheet">
 <style>
 /* css style */
@@ -380,7 +383,7 @@ a:hover {
 </head>
 <body>
     
-<h1>Yuer6327的聊天室</h1>
+<h1><?php echo $title; ?></h1>
 <h2 align="center">在线房间</h2>
 <div id="chatroomList"></div>
 <div class="divMain">
@@ -551,9 +554,28 @@ function createRoom() {
     let password = document.getElementById('txtPassword').value;
     window.location.href = 'index.php?type=new&password=' + encodeURIComponent(password);
 }
+
+//呈现在线chatrooms
+var chatrooms = <?= json_encode($chatrooms) ?>;
+
+var chatroomList = document.getElementById('chatroomList');
+
+chatrooms.forEach(function(room) {
+
+var roomLink = document.createElement('a');
+
+    roomLink.href = 'index.php?room=' + room;
+
+    roomLink.textContent = room;
+
+    chatroomList.appendChild(roomLink);
+
+    chatroomList.appendChild(document.createElement('br'));
+
+});
 </script>
 <div  align="center">
-    Copyright © 2025 Yuer6327
+    Copyright © 2025 By <strong href="https://www.mkliu.top/">michaelliunsky</strong> & <strong>Yuer6327</strong>
 </div>
 </body>
 </html>
