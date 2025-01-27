@@ -50,6 +50,16 @@ function newRoom($room, $passwordgen = null) {
 
 // 检测密码是否正确
 function checkPassword() {
+    echo '<form id="passwordForm" method="post" action="">
+    <input type="hidden" name="password" id="userPassword">
+</form>';
+echo '<script>
+    var pwd = prompt("请输入密码：");
+    if (pwd !== null) {
+        document.getElementById("userPassword").value = pwd;
+        document.getElementById("passwordForm").submit();
+    }
+</script>';
     $password = $_POST['password'] ?? '';
     $room_file = './chat_data/' . $_POST['room'] . '.txt';
     $room_data = json_decode(file_get_contents($room_file), true);
@@ -61,19 +71,6 @@ function checkPassword() {
     }
 }
 
-// 弹出输入框询问密码
-function promptPassword() {
-    echo '<form id="passwordForm" method="post" action="">
-        <input type="hidden" name="password" id="userPassword">
-    </form>';
-    echo '<script>
-        var pwd = prompt("请输入密码：");
-        if (pwd !== null) {
-            document.getElementById("userPassword").value = pwd;
-            document.getElementById("passwordForm").submit();
-        }
-    </script>';
-}
 
 function generateRandomPassword() {
     $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -133,20 +130,15 @@ switch ($type)
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (checkPassword()) {
             $authenticated = true;
-        } else {
-            promptPassword();
-        }
-    } else {
-    promptPassword();
+        } 
 }
-
 if ($authenticated) {
-    // 密码正确，继续执行聊天功能
-    break;
-}
-else {
-    promptPassword();
-}
+        // 密码正确，继续执行聊天功能
+        break;
+    }
+    else {
+        checkPassword();
+    }
 
 // 进入房间，显示聊天窗口
     case 'get':     // 获取消息
