@@ -11,6 +11,7 @@
 // 7. 支持新建房间，自动生成密码
 // 8. 支持密码保护房间
 // 9. 在config.php中设置网站标题和logo
+
 include 'config.php';
 date_default_timezone_set("PRC");
 error_reporting(E_ALL & ~E_NOTICE);
