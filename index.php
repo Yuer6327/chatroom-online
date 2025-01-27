@@ -27,7 +27,7 @@ function getChatrooms() {
     }
     return $chatrooms;
 }
-
+$newpwd = generateRandomPassword();
 function newRoom($room, $custompassword = null) {
     $room_file = './chat_data/' . $room . '.txt';
     $key_list = array_merge(range(48, 57), range(65, 90), range(97, 122), [43, 47, 61]);
@@ -35,8 +35,7 @@ function newRoom($room, $custompassword = null) {
     shuffle($key1_list);
 
     if ($room !== 'default' && !$custompassword) {
-        $custompassword = generateRandomPassword();
-        echo '<script>alert("生成的随机密码是：' . $custompassword . '，请保存好。");</script>';
+        $custompassword = $newpwd;
     }
 
     $room_data = [
@@ -127,18 +126,25 @@ switch ($type)
 {
     case 'enter':   // 进入房间
         $authenticated = false;
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        
+        // 如果房间名称为 'default'，直接通过身份验证
+        if ($room === 'default') {
+            $authenticated = true;
+        } else {
             if (checkPassword()) {
                 $authenticated = true;
-            } 
+            }
         }
+    
         if ($authenticated) {
-            // 密码正确，继续执行聊天功能
+            // 密码正确或房间为 'default'，继续执行聊天功能
             break;
-        } else {
-            echo '<script>alert("密码错误，请刷新页面重新输入密码。");</script>';
-        }
-        break;
+            else {
+                echo '<script>
+                    alert("密码错误，请刷新页面重新输入密码。");
+                    window.location.href = "index.php";
+                </script>';
+            }
 
 // 进入房间，显示聊天窗口
     case 'get':     // 获取消息
@@ -180,14 +186,18 @@ switch ($type)
         file_put_contents($room_file, json_encode($room_data));
         echo json_encode(['result' => 'ok']);
         break;
-    case 'new':     // 新建房间
-        mt_srand();
-        $room = strtoupper(md5(uniqid(mt_rand(), true)));
-        $room = substr($room, 0, 10);
-        $passwordinput = $_REQUEST['password'] ?? null;
-        newRoom($room, $passwordinput);
-        header('Location:index.php?room=' . $room);
-        break;
+        case 'new':     // 新建房间
+            mt_srand();
+            $room = strtoupper(md5(uniqid(mt_rand(), true)));
+            $room = substr($room, 0, 10);
+            $passwordinput = $_REQUEST['password'] ?? null;
+            newRoom($room, $passwordinput);
+            if (!$passwordinput) {
+                echo '<script>alert("生成的随机密码是：' . $newpwd . '，请保存好。"); window.location.href="index.php?room=' . $room . '";</script>';
+            } else {
+                header('Location:index.php?room=' . $room);
+            }
+            break;
     default:
         echo 'ERROR:no type!';
         break;
