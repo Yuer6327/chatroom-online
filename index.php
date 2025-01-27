@@ -28,6 +28,7 @@ function getChatrooms() {
     return $chatrooms;
 }
 $newpwd = generateRandomPassword();
+$copynewpwd = $newpwd;
 function newRoom($room, $custompassword = null) {
     $room_file = './chat_data/' . $room . '.txt';
     $key_list = array_merge(range(48, 57), range(65, 90), range(97, 122), [43, 47, 61]);
@@ -139,12 +140,13 @@ switch ($type)
         if ($authenticated) {
             // 密码正确或房间为 'default'，继续执行聊天功能
             break;
-            else {
-                echo '<script>
-                    alert("密码错误，请刷新页面重新输入密码。");
-                    window.location.href = "index.php";
-                </script>';
-            }
+        } else {
+            echo '<script>
+            alert("密码错误，请刷新页面重新输入密码。");
+            window.location.href = "index.php";
+        </script>';
+        }
+        break;
 
 // 进入房间，显示聊天窗口
     case 'get':     // 获取消息
@@ -193,7 +195,7 @@ switch ($type)
             $passwordinput = $_REQUEST['password'] ?? null;
             newRoom($room, $passwordinput);
             if (!$passwordinput) {
-                echo '<script>alert("生成的随机密码是：' . $newpwd . '，请保存好。"); window.location.href="index.php?room=' . $room . '";</script>';
+                echo '<script>alert("生成的随机密码是：' . $copynewpwd . '，请保存好。"); window.location.href="index.php?room=' . $room . '";</script>';
             } else {
                 header('Location:index.php?room=' . $room);
             }
