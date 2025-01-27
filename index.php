@@ -19,6 +19,7 @@ $type = strtolower($type);
 
 // 获取所有聊天室
 function getChatrooms() {
+    // 获取chat_data文件夹下的所有.txt文件
     $files = glob('./chat_data/*.txt');
     $chatrooms = [];
     foreach ($files as$file) {
@@ -53,10 +54,10 @@ function newRoom($room,$passwordgen = null)
 // 检测密码是否正确
 function checkPassword() {
     $password = $_POST['password'] ?? '';
-    $room_file = './chat_data/' .$room . '.txt';
+    $room_file = './chat_data/' . $room . '.txt';
     $room_data = json_decode(file_get_contents($room_file), true);
-    $correctPassword = $room_data['password']; // 设置正确的密码
-    if ($password == $correctPassword) {
+    $correctPassword = $room_data['password']; // 从json解码后的数据中读取正确的密码
+    if (password_verify($password, $correctPassword)) {
         return true;
     } else {
         return false;
@@ -77,6 +78,7 @@ function promptPassword() {
     </script>';
 }
 
+// 生成随机密码
 function generateRandomPassword() {
     $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     $passwordgen = '';
