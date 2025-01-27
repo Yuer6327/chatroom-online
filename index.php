@@ -28,14 +28,15 @@ function getChatrooms() {
     return $chatrooms;
 }
 
-function newRoom($room, $passwordgen = null) {
+function newRoom($room, $custompassword = null) {
     $room_file = './chat_data/' . $room . '.txt';
     $key_list = array_merge(range(48, 57), range(65, 90), range(97, 122), [43, 47, 61]);
     $key1_list = $key_list;
     shuffle($key1_list);
 
-    if (!$passwordgen) {
-        $passwordgen = generateRandomPassword();
+    if ($room !== 'default' && !$custompassword) {
+        $custompassword = generateRandomPassword();
+        echo '<script>alert("生成的随机密码是：' . $custompassword . '，请保存好。");</script>';
     }
 
     $room_data = [
@@ -43,7 +44,7 @@ function newRoom($room, $passwordgen = null) {
         'encode' => array_combine($key_list, $key1_list),
         'list'   => [],
         'time'   => date('Y-m-d H:i:s'),
-        'password' => password_hash($passwordgen, PASSWORD_DEFAULT),
+        'password' => $room === 'default' ? null : password_hash($custompassword, PASSWORD_DEFAULT),
     ];
     file_put_contents($room_file, json_encode($room_data));
 }
@@ -125,20 +126,19 @@ $room_file = './chat_data/' . $room . '.txt';
 switch ($type)
 {
     case 'enter':   // 进入房间
-    $authenticated = false;
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        if (checkPassword()) {
-            $authenticated = true;
-        } 
-}
-if ($authenticated) {
-        // 密码正确，继续执行聊天功能
+        $authenticated = false;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (checkPassword()) {
+                $authenticated = true;
+            } 
+        }
+        if ($authenticated) {
+            // 密码正确，继续执行聊天功能
+            break;
+        } else {
+            echo '<script>alert("密码错误，请刷新页面重新输入密码。");</script>';
+        }
         break;
-    }
-    else {
-        checkPassword();
-    }
 
 // 进入房间，显示聊天窗口
     case 'get':     // 获取消息
@@ -184,9 +184,9 @@ if ($authenticated) {
         mt_srand();
         $room = strtoupper(md5(uniqid(mt_rand(), true)));
         $room = substr($room, 0, 10);
-        $password = $_REQUEST['password'] ?? null;
-        newRoom($room, $password);
-        header('Location:index.php?room=' . $room . "&password=" . $password);
+        $passwordinput = $_REQUEST['password'] ?? null;
+        newRoom($room, $passwordinput);
+        header('Location:index.php?room=' . $room);
         break;
     default:
         echo 'ERROR:no type!';
@@ -383,11 +383,7 @@ a:hover {
 <br>
 <label for="password">密码：</label>
 <input type="password" id="txtPassword" maxlength="50" />
-<button onclick="createRoom();">新房间</button>
-<label for="generatePassword">
-    <input type="checkbox" id="generatePassword" />
-    自动生成随机密码
-</label>
+<button onclick="createRoom();">新房间</button><p>若密码为空，则将自动生成密码</p>
 
 <hr>
 <div id="divList"></div>
@@ -544,34 +540,8 @@ $(function(){
 
 function createRoom() {
     let password = document.getElementById('txtPassword').value;
-    let generatePassword = document.getElementById('generatePassword').checked;
-
-    if (generatePassword) {
-        password = generateRandomPassword();
-    }
-
     window.location.href = 'index.php?type=new&password=' + encodeURIComponent(password);
 }
-
-function generateRandomPassword() {
-    let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let password = '';
-    for (let i = 0; i < 8; i++) {
-        password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return password;
-}
-
-var chatrooms = <?= json_encode($chatrooms) ?>;
-var password = <?= json_encode($passwordgen) ?>;
-var chatroomList = document.getElementById('chatroomList');
-chatrooms.forEach(function(room) {
-    var roomLink = document.createElement('a');
-    roomLink.href = 'index.php?room=' + room + '&password=' + password;
-    roomLink.textContent = room;
-    chatroomList.appendChild(roomLink);
-    chatroomList.appendChild(document.createElement('br'));
-});
 </script>
 <div  align="center">
     Copyright © 2025 Yuer6327
