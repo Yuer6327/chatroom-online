@@ -53,12 +53,17 @@ function newRoom($room, $custompassword = null) {
 function checkPassword() {
     echo '<form id="passwordForm" method="post" action="">
     <input type="hidden" name="password" id="userPassword">
+    <input type="hidden" name="room" id="userRoom">
 </form>';
 echo '<script>
-    var pwd = prompt("请输入密码：");
-    if (pwd !== null) {
-        document.getElementById("userPassword").value = pwd;
-        document.getElementById("passwordForm").submit();
+    var room = prompt("请输入房间号：");
+    if (room !== null) {
+        var pwd = prompt("请输入密码：");
+        if (pwd !== null) {
+            document.getElementById("userRoom").value = room;
+            document.getElementById("userPassword").value = pwd;
+            document.getElementById("passwordForm").submit();
+        }
     }
 </script>';
     $password = $_POST['password'] ?? '';
