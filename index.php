@@ -194,11 +194,8 @@ switch ($type)
             $room = substr($room, 0, 10);
             $passwordinput = $_REQUEST['password'] ?? null;
             $generatedPassword = newRoom($room, $passwordinput);
-            if (!$passwordinput) {
-                echo '<script>alert("生成的随机密码是：' . $generatedPassword . '，请保存好。"); window.location.href="index.php?room=' . $room . '";</script>';
-            } else {
+                echo '<script>alert("房间密码是：' . $generatedPassword . '，请保存好。"); window.location.href="index.php?room=' . $room . '";</script>';
                 header('Location:index.php?room=' . $room);
-            }
             break;
     default:
         echo 'ERROR:no type!';
