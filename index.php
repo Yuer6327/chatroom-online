@@ -27,8 +27,7 @@ function getChatrooms() {
     }
     return $chatrooms;
 }
-$newpwd = generateRandomPassword();
-$copynewpwd = $newpwd;
+
 function newRoom($room, $custompassword = null) {
     $room_file = './chat_data/' . $room . '.txt';
     $key_list = array_merge(range(48, 57), range(65, 90), range(97, 122), [43, 47, 61]);
@@ -36,7 +35,7 @@ function newRoom($room, $custompassword = null) {
     shuffle($key1_list);
 
     if ($room !== 'default' && !$custompassword) {
-        $custompassword = $newpwd;
+        $custompassword = generateRandomPassword();
     }
 
     $room_data = [
@@ -47,6 +46,7 @@ function newRoom($room, $custompassword = null) {
         'password' => $room === 'default' ? null : password_hash($custompassword, PASSWORD_DEFAULT),
     ];
     file_put_contents($room_file, json_encode($room_data));
+    return $custompassword;
 }
 
 // 检测密码是否正确
@@ -193,9 +193,9 @@ switch ($type)
             $room = strtoupper(md5(uniqid(mt_rand(), true)));
             $room = substr($room, 0, 10);
             $passwordinput = $_REQUEST['password'] ?? null;
-            newRoom($room, $passwordinput);
+            $generatedPassword = newRoom($room, $passwordinput);
             if (!$passwordinput) {
-                echo '<script>alert("生成的随机密码是：' . $copynewpwd . '，请保存好。"); window.location.href="index.php?room=' . $room . '";</script>';
+                echo '<script>alert("生成的随机密码是：' . $generatedPassword . '，请保存好。"); window.location.href="index.php?room=' . $room . '";</script>';
             } else {
                 header('Location:index.php?room=' . $room);
             }
