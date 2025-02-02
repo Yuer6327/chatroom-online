@@ -32,6 +32,7 @@ function getChatrooms() {
     return $chatrooms;
 }
 
+//生成新房间
 function newRoom($room, $custompassword = null) {
     $room_file = './chat_data/' . $room . '.txt';
     $key_list = array_merge(range(48, 57), range(65, 90), range(97, 122), [43, 47, 61]);
@@ -56,26 +57,30 @@ function newRoom($room, $custompassword = null) {
 // 检测密码是否正确
 function checkPassword() {
     echo '<form id="passwordForm" method="post" action="">
-    <input type="hidden" name="password" id="userPassword">
+    <label for="room">房间号：</label>
+    <input type="text" name="room" id="userRoom" required>
+    <br>
+    <label for="password">密码：</label>
+    <input type="password" name="password" id="userPassword" required>
+    <br>
+    <input type="submit" value="提交">
 </form>';
-echo '<script>
-    var pwd = prompt("请输入密码：");
-    if (pwd !== null) {
-        document.getElementById("userPassword").value = pwd;
-        document.getElementById("passwordForm").submit();
-    }
+    echo '<script>
+    document.getElementById("passwordForm").style.display = "block";
 </script>';
-    $password = $_POST['password'] ?? '';
-    $room_file = './chat_data/' . $_POST['room'] . '.txt';
-    $room_data = json_decode(file_get_contents($room_file), true);
-    $correctPassword = $room_data['password']; // 获取正确的密码哈希
-    if (password_verify($password, $correctPassword)) {
-        return true;
-    } else {
-        return false;
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $password = $_POST['password'] ?? '';
+        $roominput = $_POST['room'] ?? '';
+        $room_file = './chat_data/' . $roominput . '.txt';
+        $room_data = json_decode(file_get_contents($room_file), true);
+        $correctPassword = $room_data['password']; // 获取正确的密码哈希
+        if (password_verify($password, $correctPassword)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
-
 
 function generateRandomPassword() {
     $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -198,7 +203,7 @@ switch ($type)
             $room = substr($room, 0, 10);
             $passwordinput = $_REQUEST['password'] ?? null;
             $generatedPassword = newRoom($room, $passwordinput);
-            echo '<script>alert("房间密码是：' . $generatedPassword . '，请保存好。"); window.location.href="index.php?room=' . $room . '";</script>';
+            echo '<script>alert("房间号是：' . $room . '，房间密码是：' . $generatedPassword . '，请保存好。"); window.location.href="index.php?room=' . $room . '";</script>';
             exit;
             break;
     default:
