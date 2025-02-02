@@ -68,7 +68,6 @@ function checkPassword() {
     echo '<script>
     document.getElementById("passwordForm").style.display = "block";
 </script>';
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'] ?? '';
         $roominput = $_POST['room'] ?? '';
         $room_file = './chat_data/' . $roominput . '.txt';
@@ -78,8 +77,7 @@ function checkPassword() {
             return true;
         } else {
             return false;
-        }
-    }
+        } 
 }
 
 function generateRandomPassword() {
