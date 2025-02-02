@@ -86,7 +86,7 @@ function checkPassword() {
         echo '<script>
         document.getElementById("passwordForm").style.display = "block";
         </script>';
-        return false; // 确保在显示表单时返回 false 以继续进行验证
+        return false; 
     }
 }
 
@@ -160,6 +160,7 @@ switch ($type)
         } else {
             // 如果密码错误或房间不存在，显示表单
             checkPassword();
+            exit;
         }
         break;
 
