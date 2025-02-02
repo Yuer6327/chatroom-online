@@ -56,29 +56,38 @@ function newRoom($room, $custompassword = null) {
 
 // 检测密码是否正确
 function checkPassword() {
-    echo '<form id="passwordForm" method="post" action="">
-    <label for="room">房间号：</label>
-    <input type="text" name="room" id="userRoom" required>
-    <br>
-    <label for="password">密码：</label>
-    <input type="password" name="password" id="userPassword" required>
-    <br>
-    <input type="submit" value="提交">
-</form>';
-    echo '<script>
-    document.getElementById("passwordForm").style.display = "block";
-</script>';
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'] ?? '';
         $roominput = $_POST['room'] ?? '';
         $room_file = './chat_data/' . $roominput . '.txt';
-        $room_data = json_decode(file_get_contents($room_file), true);
-        $correctPassword = $room_data['password']; // 获取正确的密码哈希
-        if (password_verify($password, $correctPassword)) {
-            return true;
+        if (file_exists($room_file)) {
+            $room_data = json_decode(file_get_contents($room_file), true);
+            $correctPassword = $room_data['password']; // 获取正确的密码哈希
+            if (password_verify($password, $correctPassword)) {
+                return true;
+            } else {
+                echo '<script>alert("密码错误，请重试。");</script>';
+                return false;
+            }
         } else {
-            echo '<script>alert("密码错误，请重试。");</script>';
+            echo '<script>alert("房间不存在，请重试。");</script>';
             return false;
         }
+    } else {
+        echo '<form id="passwordForm" method="post" action="">
+        <label for="room">房间号：</label>
+        <input type="text" name="room" id="userRoom" required>
+        <br>
+        <label for="password">密码：</label>
+        <input type="password" name="password" id="userPassword" required>
+        <br>
+        <input type="submit" value="提交">
+        </form>';
+        echo '<script>
+        document.getElementById("passwordForm").style.display = "block";
+        </script>';
+        return false; // 确保在显示表单时返回 false 以继续进行验证
+    }
 }
 
 function generateRandomPassword() {
