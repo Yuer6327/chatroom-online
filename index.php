@@ -76,8 +76,9 @@ function checkPassword() {
         if (password_verify($password, $correctPassword)) {
             return true;
         } else {
+            echo '<script>alert("密码错误，请重试。");</script>';
             return false;
-        } 
+        }
 }
 
 function generateRandomPassword() {
@@ -148,10 +149,8 @@ switch ($type)
             // 密码正确或房间为 'default'，继续执行聊天功能
             break;
         } else {
-            echo '<script>
-            alert("密码错误，请刷新页面重新输入密码。");
-            window.location.href = "index.php";
-        </script>';
+            // 如果密码错误或房间不存在，显示表单
+            checkPassword();
         }
         break;
 
