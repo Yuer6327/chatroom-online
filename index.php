@@ -95,25 +95,19 @@ function checkPassword() {
     </div>
 </div>
 <style>
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
-    color: #333;
-}
 .overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: linear-gradient(135deg, #FFD700, #1E90FF); /* 黄蓝渐变色 */
     display: flex;
     justify-content: center;
     align-items: center;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.5s, visibility 0.5s;
+    transition: opacity 1.25s, visibility 1.25s;
 }
 .overlay.show {
     opacity: 1;
@@ -127,7 +121,7 @@ body {
     max-width: 400px;
     width: 100%;
     transform: translateY(-50px);
-    transition: transform 0.5s;
+    transition: transform 1.25s;
 }
 .overlay.show .form-container {
     transform: translateY(0);
