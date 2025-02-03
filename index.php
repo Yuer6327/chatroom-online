@@ -153,9 +153,6 @@ input[type="submit"]:hover {
 }
 </style>
 ';
-        //echo '<script>
-             //   document.getElementById("passwordForm").style.display = "block";
-            //  </script>';
         exit;
     }
 }
