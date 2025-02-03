@@ -93,7 +93,85 @@ function checkPassword() {
                         <input type="submit" value="提交">
                     </form>
                 </div>
-              </div>';
+              </div>
+              <style>
+              .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s, visibility 0.5s;
+}
+
+.overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.form-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 100%;
+    transform: translateY(-50px);
+    transition: transform 0.5s;
+}
+
+.overlay.show .form-container {
+    transform: translateY(0);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #444;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+input[type="text"], input[type="password"] {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.7);
+    background: #f9f9f9;
+}
+
+input[type="submit"] {
+    background-color: #007BFF;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1), -2px -2px 5px rgba(255, 255, 255, 0.7);
+    width: 100%;
+}
+
+input[type="submit"]:hover {
+    background-color: #0056b3;
+}</style>
+';
         echo '<script>
                 document.getElementById("passwordForm").style.display = "block";
                 document.querySelector(".overlay").classList.add("show");
@@ -270,83 +348,6 @@ body {
     font-family: 'Arial', sans-serif;
     background-color: #f4f4f9;
     color: #333;
-}
-
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.5s, visibility 0.5s;
-}
-
-.overlay.show {
-    opacity: 1;
-    visibility: visible;
-}
-
-.form-container {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
-    width: 100%;
-    transform: translateY(-50px);
-    transition: transform 0.5s;
-}
-
-.overlay.show .form-container {
-    transform: translateY(0);
-}
-
-h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #444;
-}
-
-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #333;
-}
-
-input[type="text"], input[type="password"] {
-    width: calc(100% - 20px);
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-    box-sizing: border-box;
-    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.7);
-    background: #f9f9f9;
-}
-
-input[type="submit"] {
-    background-color: #007BFF;
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1), -2px -2px 5px rgba(255, 255, 255, 0.7);
-    width: 100%;
-}
-
-input[type="submit"]:hover {
-    background-color: #0056b3;
 }
 
 /* 主标题样式 */
