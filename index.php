@@ -105,13 +105,6 @@ function checkPassword() {
     display: flex;
     justify-content: center;
     align-items: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 1.25s, visibility 1.25s;
-}
-.overlay.show {
-    opacity: 1;
-    visibility: visible;
 }
 .form-container {
     background: #fff;
@@ -120,11 +113,6 @@ function checkPassword() {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     max-width: 400px;
     width: 100%;
-    transform: translateY(-50px);
-    transition: transform 1.25s;
-}
-.overlay.show .form-container {
-    transform: translateY(0);
 }
 h2 {
     text-align: center;
@@ -165,12 +153,9 @@ input[type="submit"]:hover {
 }
 </style>
 ';
-        echo '<script>
-                document.getElementById("passwordForm").style.display = "block";
-                document.addEventListener("DOMContentLoaded", function() {
-                document.querySelector(".overlay").classList.add("show");
-        });
-              </script>';
+        //echo '<script>
+             //   document.getElementById("passwordForm").style.display = "block";
+            //  </script>';
         exit;
     }
 }
