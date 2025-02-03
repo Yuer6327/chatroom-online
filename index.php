@@ -80,18 +80,20 @@ function checkPassword() {
             return false;
         }
     } else {
-        echo '<form id="passwordForm" method="post" action="">
-        <label for="room">房间号：</label>
-        <input type="text" name="room" id="userRoom" required>
-        <br>
-        <label for="password">密码：</label>
-        <input type="password" name="password" id="userPassword" required>
-        <br>
-        <input type="submit" value="提交">
-        </form>';
+        echo '<div class="divMain">
+            <form id="passwordForm" method="post" action="">
+                <label for="room">房间号：</label>
+                <input type="text" name="room" id="userRoom" required>
+                <br>
+                <label for="password">密码：</label>
+                <input type="password" name="password" id="userPassword" required>
+                <br>
+                <input type="submit" value="提交">
+            </form>
+          </div>';
         echo '<script>
-        document.getElementById("passwordForm").style.display = "block";
-        </script>';
+            document.getElementById("passwordForm").style.display = "block";
+          </script>';
         exit;
     }
 }
@@ -253,6 +255,13 @@ body {
 .divMain {
     font-size: 14px;
     line-height: 2;
+    max-width: 800px;
+    margin: 20px auto;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    line-height: 1.6;
 }
 
 #divList span {
