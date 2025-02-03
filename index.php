@@ -167,6 +167,7 @@ input[type="submit"]:hover {
 ';
         echo '<script>
                 document.getElementById("passwordForm").style.display = "block";
+                document.addEventListener("DOMContentLoaded", function() {
                 document.querySelector(".overlay").classList.add("show");
               </script>';
         exit;
