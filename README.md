@@ -1,5 +1,6 @@
 # PHP单页面在线聊天😋
-# 20260102 BY [Yuer6327](https://yuer6327.top)
+# BY [Yuer6327](https://yuer6327.top)  
+# Also see [Chatom By Mike Liu](https://github.com/michaelliunsky/Chatom)
 # 基本功能：
 1. 多人聊天
 2. 多房间
@@ -16,6 +17,6 @@
 4. 配置：手动修改 `index.php` 顶部的以下变量：
    - `$title`: 网站标题
    - `$logoUrl`: 网站 Logo 链接
-5. 注意：为了安全，建议定期清理 `data` 中的旧记录（程序已内置自动清理一月前消息的功能）。  
+5. 建议定期清理 `data` 中的旧记录（程序内置自动清理一月前消息的功能）。  
 
 ## Demo: https://yuer6327.top/chat/index.php
